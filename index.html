@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Form Hell — an HTML and CSS only escape game.">
+  <title>Form Hell — There is no cancel button</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #101721;
+      --paper: #e9e4d5;
+      --paper-shade: #d2cab6;
+      --muted: #9ca5a8;
+      --red: #f2584b;
+      --amber: #f5b547;
+      --green: #a7d66b;
+      --line: rgb(233 228 213 / 24%);
+      --panel: 800px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--paper);
+      background:
+        radial-gradient(circle at 24% 0%, #263441 0, transparent 30rem),
+        repeating-linear-gradient(0deg, rgb(255 255 255 / 0.012) 0 1px, transparent 1px 4px),
+        var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    .shell { width: min(calc(100% - 2rem), var(--panel)); margin: 0 auto; }
+
+    .masthead {
+      min-height: 100svh;
+      display: grid;
+      align-content: center;
+      gap: 1.2rem;
+      padding: 4rem 0;
+    }
+
+    .eyebrow, .system, legend, .progress-label, .stamp {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow { margin: 0; color: var(--amber); font-size: .78rem; }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 10ch;
+      margin-bottom: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(4.5rem, 18vw, 9.5rem);
+      line-height: .78;
+      letter-spacing: -.08em;
+      color: #fbf5e8;
+      text-shadow: 5px 5px 0 #152534;
+    }
+
+    .tagline { margin: 0; color: var(--red); font-size: clamp(1.2rem, 3vw, 1.65rem); }
+    .intro { max-width: 54ch; color: #c6c5bb; font-size: 1.06rem; }
+
+    .button, .escape-link {
+      display: inline-block;
+      width: fit-content;
+      border: 1px solid var(--amber);
+      padding: .75rem 1rem;
+      color: var(--ink);
+      background: var(--amber);
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .button:hover, .button:focus-visible, .escape-link:hover, .escape-link:focus-visible {
+      background: #ffd17e;
+      transform: translate(-2px, -2px);
+      outline: 3px solid #fff;
+      outline-offset: 3px;
+    }
+
+    main { padding: 0 0 6rem; }
+
+    .progress {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      border-block: 1px solid var(--line);
+      padding: .8rem 0;
+      background: rgb(16 23 33 / 94%);
+      backdrop-filter: blur(10px);
+    }
+
+    .progress-label { margin: 0; color: var(--muted); font-size: .68rem; }
+    .steps { display: flex; gap: .42rem; }
+    .step { width: .62rem; height: .62rem; border: 1px solid var(--muted); border-radius: 50%; }
+    .step.done { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+    form { padding-top: 2.5rem; }
+    .room, .ending { display: none; }
+    .room--identity { display: block; }
+
+    .room {
+      position: relative;
+      margin: 0 0 1.5rem;
+      animation: arrive .5s ease both;
+    }
+
+    @keyframes arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes alarm { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(-4px); } 60% { transform: translateX(4px); } }
+    @keyframes blink { 50% { opacity: .2; } }
+
+    fieldset {
+      position: relative;
+      margin: 0;
+      border: 0;
+      padding: clamp(1.3rem, 4vw, 2.5rem);
+      color: #1f272a;
+      background:
+        repeating-linear-gradient(-45deg, transparent 0 3px, rgb(83 75 48 / .025) 3px 5px),
+        var(--paper);
+      box-shadow: 9px 9px 0 #0a0e13, 0 0 0 1px var(--paper-shade);
+    }
+
+    legend {
+      width: max-content;
+      max-width: 100%;
+      padding: .37rem .6rem;
+      color: var(--ink);
+      background: var(--amber);
+      font-weight: 800;
+      font-size: .72rem;
+    }
+
+    h2 { margin-bottom: .6rem; font: 800 clamp(1.65rem, 5vw, 2.45rem)/1 Georgia, "Times New Roman", serif; }
+    h3 { margin-bottom: .4rem; font-size: 1rem; }
+    .prompt { max-width: 53ch; margin-bottom: 1.25rem; font-size: 1.07rem; }
+    .system { color: #59615d; font-size: .72rem; }
+    .system::after { content: "_"; color: var(--red); animation: blink 1s step-end infinite; }
+
+    .policy {
+      max-width: 57ch;
+      margin: 1.1rem 0;
+      border-left: 4px solid var(--amber);
+      padding: .6rem .85rem;
+      background: rgb(255 255 255 / .37);
+      color: #39413b;
+      font-size: .92rem;
+    }
+    .policy p { margin: .65rem 0 0; }
+    summary { cursor: pointer; font-weight: 800; }
+    summary:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+    label { display: block; width: fit-content; max-width: 100%; margin: .55rem 0; cursor: pointer; }
+    input[type="text"] {
+      display: block;
+      width: min(100%, 32rem);
+      border: 2px solid #5d625b;
+      border-radius: 0;
+      padding: .7rem .8rem;
+      color: #18201e;
+      background: #fffef7;
+      font: 700 1rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      text-transform: uppercase;
+    }
+    input[type="text"]:focus { border-color: #1975a3; outline: 3px solid rgb(25 117 163 / .25); }
+    input:invalid:not(:placeholder-shown) { border-color: var(--red); }
+    input:valid { border-color: #4e8a45; box-shadow: inset 0 0 0 1px #4e8a45; }
+    input[type="radio"], input[type="checkbox"] { accent-color: #307a3d; inline-size: 1.1rem; block-size: 1.1rem; vertical-align: -.15em; }
+
+    .feedback { display: none; margin: 1rem 0 0; padding: .65rem .8rem; font-weight: 700; }
+    .feedback--bad { border-left: 4px solid var(--red); color: #a7332d; background: #f8d8ce; }
+    .feedback--good { border-left: 4px solid #4e8a45; color: #255d2d; background: #dff0cf; }
+    .identity-input:invalid:not(:placeholder-shown) ~ .feedback--bad { display: block; animation: alarm .18s linear; }
+    .identity-input:valid ~ .feedback--good { display: block; }
+    .stamp {
+      display: none;
+      width: fit-content;
+      margin-top: 1rem;
+      border: 3px solid #4e8a45;
+      padding: .35rem .55rem;
+      color: #326938;
+      font-weight: 900;
+      transform: rotate(-3deg);
+    }
+    .room--identity:has(#identity:valid) .stamp,
+    .room--temporal:has(#temporal-before:checked) .stamp,
+    .room--emergency:has(#contact-emergency:checked) .stamp,
+    .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .stamp,
+    .room--exit:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .stamp { display: block; }
+
+    .room--temporal:has(#temporal-before:checked) .feedback--good,
+    .room--emergency:has(#contact-emergency:checked) .feedback--good,
+    .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .feedback--good,
+    .room--exit:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .feedback--good { display: block; }
+
+    .room--identity:has(#identity:valid) + .room,
+    .room--temporal:has(#temporal-before:checked) + .room,
+    .room--emergency:has(#contact-emergency:checked) + .room,
+    .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) + .room,
+    .room--exit:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) + .ending { display: block; }
+
+    body:has(#identity:valid) .steps .step:nth-child(1),
+    body:has(#temporal-before:checked) .steps .step:nth-child(2),
+    body:has(#contact-emergency:checked) .steps .step:nth-child(3),
+    body:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .steps .step:nth-child(4),
+    body:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+    .choice-set { margin: 1rem 0; }
+    .choice-set label { padding: .22rem .3rem; }
+    .choice-set label:has(input:checked) { color: #173d21; background: #cfeac4; font-weight: 800; }
+    .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .8rem 1rem; }
+    .split label { margin: 0; }
+    .split input { margin-top: .3rem; }
+
+    .ending { margin: 2rem 0; animation: arrive .7s ease both; }
+    .ending-inner {
+      border: 2px solid var(--green);
+      padding: clamp(1.7rem, 5vw, 3.5rem);
+      color: #18251c;
+      background: #def2d0;
+      box-shadow: 9px 9px 0 #0a0e13;
+    }
+    .ending h2 { color: #225e30; }
+    .quiet { margin-top: 1.5rem; color: #45534a; font-size: .9rem; }
+    .quiet a { color: inherit; }
+
+    @media (max-width: 520px) { .progress { padding-inline: .2rem; } .progress-label { font-size: .58rem; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    @media print {
+      body { color: #000; background: #fff; }
+      .masthead, .progress, form { display: none !important; }
+      .ending { display: block !important; margin: 1cm; }
+      .ending-inner { border: 2px solid #000; box-shadow: none; }
+      .escape-link, .quiet { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell masthead">
+    <p class="eyebrow">Department of Existential Administration · Form 0-0</p>
+    <h1>FORM<br>HELL</h1>
+    <p class="tagline">There is no cancel button.</p>
+    <p class="intro">Welcome, Applicant. Your exit request has been received. Please complete the following mandatory fields to demonstrate eligibility for release.</p>
+    <a class="button" href="#compliance">Begin compliance</a>
+  </header>
+
+  <main id="compliance" class="shell">
+    <nav class="progress" aria-label="Compliance progress">
+      <p class="progress-label">Compliance events resolved</p>
+      <div class="steps" aria-label="Five compliance events">
+        <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
+      </div>
+    </nav>
+
+    <form action="#" autocomplete="off">
+      <section class="room room--identity" aria-labelledby="identity-title">
+        <fieldset>
+          <legend>01 · Identity verification</legend>
+          <p class="system">Secure channel established</p>
+          <h2 id="identity-title">Who were you?</h2>
+          <p class="prompt">Please enter your legal name exactly as it appeared before you were born.</p>
+          <details class="policy">
+            <summary>Review pre-incarnation identity policy</summary>
+            <p>All employees are registered before acquisition of a body. Initial identity is therefore recorded as <strong>UNASSIGNED</strong>.</p>
+          </details>
+          <label for="identity">Pre-birth legal name</label>
+          <input class="identity-input" id="identity" name="identity" type="text" placeholder="TYPE HERE" required pattern="[Uu][Nn][Aa][Ss][Ss][Ii][Gg][Nn][Ee][Dd]" aria-describedby="identity-message">
+          <p id="identity-message" class="feedback feedback--bad">No living identity found in our records.</p>
+          <p class="feedback feedback--good">Identity temporarily accepted. Please do not become attached to it.</p>
+          <p class="stamp">Existence acknowledged</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--temporal" aria-labelledby="temporal-title">
+        <fieldset>
+          <legend>02 · Temporal compliance</legend>
+          <p class="system">Chronology reconciliation required</p>
+          <h2 id="temporal-title">When did you start?</h2>
+          <p class="prompt">State the date you began working here.</p>
+          <div class="policy"><strong>Employee profile, partially recovered</strong><br>Date of birth: 21 August 1996<br>Contract commencement: Immediately<br>Orientation status: Ongoing<br>Employment duration: Before</div>
+          <div class="choice-set" role="radiogroup" aria-label="Date you began working here">
+            <label><input type="radio" name="temporal" required> 21 August 1996</label>
+            <label><input type="radio" name="temporal"> Immediately</label>
+            <label><input id="temporal-before" type="radio" name="temporal"> Before</label>
+          </div>
+          <p class="feedback feedback--good">Thank you. Seniority has been adjusted retroactively.</p>
+          <p class="stamp">Temporal status aligned</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--emergency" aria-labelledby="emergency-title">
+        <fieldset>
+          <legend>03 · Emergency contact</legend>
+          <p class="system">Incident protocol active</p>
+          <h2 id="emergency-title">Who should we call?</h2>
+          <p class="prompt">In the event of an emergency, whom should we notify?</p>
+          <details class="policy">
+            <summary>Open stakeholder notification policy</summary>
+            <p>Emergencies are autonomous corporate stakeholders and must be informed of any change to their operational environment.</p>
+          </details>
+          <div class="choice-set" role="radiogroup" aria-label="Emergency contact">
+            <label><input type="radio" name="emergency" required> My family</label>
+            <label><input type="radio" name="emergency"> Local authorities</label>
+            <label><input type="radio" name="emergency"> Myself</label>
+            <label><input id="contact-emergency" type="radio" name="emergency"> The emergency</label>
+          </div>
+          <p class="feedback feedback--good">Emergency notified. It appreciates the courtesy.</p>
+          <p class="stamp">Incident escalated</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--consent" aria-labelledby="consent-title">
+        <fieldset>
+          <legend>04 · Consent to be processed</legend>
+          <p class="system">Consent extraction interface</p>
+          <h2 id="consent-title">Confirm all statements that are true.</h2>
+          <p class="prompt">Every selected statement is binding, whether or not it is.</p>
+          <details class="policy">
+            <summary>Read the legal clarification</summary>
+            <p>Understanding is not required. Agreement cannot be verified. The company recognizes only documents, not people.</p>
+          </details>
+          <div class="choice-set" aria-label="Consent statements">
+            <label><input id="read" type="checkbox"> I have read the terms.</label>
+            <label><input id="understand" type="checkbox"> I understand the terms.</label>
+            <label><input id="agree" type="checkbox"> I have agreed to the terms.</label>
+            <label><input id="terms" type="checkbox"> I am the terms.</label>
+            <label><input id="waive" type="checkbox"> I waive my right to be a person.</label>
+            <label><input id="nonbinding" type="checkbox"> I acknowledge that this acknowledgment is non-binding.</label>
+          </div>
+          <p class="feedback feedback--good">Consent has been extracted. Thank you for volunteering it.</p>
+          <p class="stamp">Personhood archived</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--exit" aria-labelledby="exit-title">
+        <fieldset>
+          <legend>05 · Exit interview</legend>
+          <p class="system">Departure authorization pending</p>
+          <h2 id="exit-title">State your release.</h2>
+          <p class="prompt">Complete the following statement to confirm your departure. Previous answers may assist your memory.</p>
+          <p class="policy">I, ________, who began ________, authorize ________ to notify ________ that I am ________.</p>
+          <div class="split">
+            <label for="final-name">I<input id="final-name" type="text" required pattern="[Uu][Nn][Aa][Ss][Ss][Ii][Gg][Nn][Ee][Dd]" placeholder="________"></label>
+            <label for="final-began">Began<input id="final-began" type="text" required pattern="[Bb][Ee][Ff][Oo][Rr][Ee]" placeholder="________"></label>
+            <label for="final-authorize">Authorize<input id="final-authorize" type="text" required pattern="[Tt][Hh][Ee] [Tt][Ee][Rr][Mm][Ss]" placeholder="________"></label>
+            <label for="final-notify">Notify<input id="final-notify" type="text" required pattern="[Tt][Hh][Ee] [Ee][Mm][Ee][Rr][Gg][Ee][Nn][Cc][Yy]" placeholder="________"></label>
+            <label for="final-am">I am<input id="final-am" type="text" required pattern="[Nn][Oo][Nn]-[Bb][Ii][Nn][Dd][Ii][Nn][Gg]" placeholder="________"></label>
+          </div>
+          <p class="feedback feedback--good">Departure request received. Reviewing your eligibility to have ever been here.</p>
+          <p class="stamp">Departure language accepted</p>
+        </fieldset>
+      </section>
+
+      <section id="approved" class="ending" aria-labelledby="approved-title">
+        <div class="ending-inner">
+          <p class="eyebrow">Form 0-0 · Disposition complete</p>
+          <h2 id="approved-title">Exit approved.</h2>
+          <p>Congratulations, Applicant. You have successfully escaped Form Hell.</p>
+          <p>Your replacement has been created from the information you provided.</p>
+          <a class="escape-link" href="#certificate">View print-ready certificate</a>
+          <p id="certificate" class="quiet">Use your browser’s print command to keep a physical record of your nonexistence. <a href="">Return to Form Hell</a>. Close this tab and pretend it was voluntary.</p>
+        </div>
+      </section>
+    </form>
+  </main>
+</body>
+</html>
