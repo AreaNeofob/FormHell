@@ -112,7 +112,7 @@
 
     form { padding-top: 2.5rem; }
     .room, .ending { display: none; }
-    .room--identity { display: block; }
+    .room--identity, .room--headcount { display: block; }
 
     .room {
       position: relative;
@@ -236,17 +236,17 @@
     form:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .ending--secret { display: block; }
 
     /* Cumulative progress rail */
-    body:has(#identity:valid) .steps .step:nth-child(1),
-    body:has(#identity:valid):has(#temporal-before:checked) .steps .step:nth-child(2),
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked) .steps .step:nth-child(3),
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .steps .step:nth-child(4),
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)):has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+    body:has(#identity:valid) #compliance .steps .step:nth-child(1),
+    body:has(#identity:valid):has(#temporal-before:checked) #compliance .steps .step:nth-child(2),
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked) #compliance .steps .step:nth-child(3),
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) #compliance .steps .step:nth-child(4),
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)):has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) #compliance .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
 
     /* Secret disposition: the whole rail turns red and the label changes */
     .progress-label--secret { display: none; color: var(--red); }
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); }
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .progress-label--standard { display: none; }
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .progress-label--secret { display: block; }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .progress-label--standard { display: none; }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .progress-label--secret { display: block; }
 
     /* Hidden policy violations */
     .violation { margin: .8rem 0 0; font-size: .78rem; }
@@ -277,11 +277,16 @@
     .count--hints::before { content: counter(hints) " / 3"; }
     .count--violations::before { content: counter(violations) " / 3"; }
     .rank { display: none; margin: .9rem 0 0; font-weight: 800; }
-    .rank--standard { display: block; }
-    body:not(:has(.hint[open])):not(:has(.violation input:checked)) .rank--standard,
-    body:has(#v-clause:checked):has(#v-redacted:checked):has(#v-footnote:checked) .rank--standard { display: none; }
-    body:not(:has(.hint[open])):not(:has(.violation input:checked)) .rank--exemplary,
-    body:has(#v-clause:checked):has(#v-redacted:checked):has(#v-footnote:checked) .rank--offender { display: block; }
+    .rank--adequate { display: block; }
+    /* Ratings are scoped per track. The masthead violation (#v-clause) counts for both. */
+    body:not(:has(#compliance .hint[open], #compliance .violation input:checked, #v-clause:checked)) #compliance .rank--adequate,
+    body:has(#v-clause:checked):has(#v-redacted:checked):has(#v-footnote:checked) #compliance .rank--adequate,
+    body:not(:has(#management .hint[open], #management .violation input:checked, #v-clause:checked)) #management .rank--adequate,
+    body:has(#v-clause:checked):has(#v-interns:checked):has(#v-record:checked) #management .rank--adequate { display: none; }
+    body:not(:has(#compliance .hint[open], #compliance .violation input:checked, #v-clause:checked)) #compliance .rank--exemplary,
+    body:has(#v-clause:checked):has(#v-redacted:checked):has(#v-footnote:checked) #compliance .rank--offender,
+    body:not(:has(#management .hint[open], #management .violation input:checked, #v-clause:checked)) #management .rank--exemplary,
+    body:has(#v-clause:checked):has(#v-interns:checked):has(#v-record:checked) #management .rank--offender { display: block; }
 
     .choice-set { margin: 1rem 0; }
     .choice-set label { padding: .22rem .3rem; }
@@ -306,6 +311,85 @@
     .ending--secret .quiet { color: #6b3b35; }
     .quiet a { color: inherit; }
 
+    /* Track selection: one radio pair in the masthead decides which <main> is shown. */
+    .tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .8rem; max-width: 46rem; margin: 0; border: 0; padding: 0; color: inherit; background: none; box-shadow: none; }
+    .tracks legend { margin-bottom: .6rem; }
+    .track-option { display: block; width: auto; margin: 0; border: 1px solid var(--line); padding: .8rem .9rem; color: #c6c5bb; background: rgb(255 255 255 / .03); }
+    .track-option strong { display: block; color: var(--paper); font-size: 1.02rem; }
+    .track-option small { display: block; margin-top: .2rem; font-size: .86rem; }
+    .track-option input { margin-right: .4rem; accent-color: var(--amber); }
+    .track-option:has(input:checked) { border-color: var(--amber); background: rgb(245 181 71 / .1); }
+    .track-option:has(input:focus-visible) { outline: 3px solid #fff; outline-offset: 3px; }
+    .button--management { display: none; }
+    #management { display: none; }
+    body:has(#mode-management:checked) #compliance,
+    body:has(#mode-management:checked) .button--standard { display: none; }
+    body:has(#mode-management:checked) #management,
+    body:has(#mode-management:checked) .button--management { display: block; }
+
+    /* Management Track inputs */
+    input[type="number"], input[type="date"], select {
+      display: block;
+      width: min(100%, 20rem);
+      border: 2px solid #5d625b;
+      border-radius: 0;
+      padding: .6rem .8rem;
+      color: #18201e;
+      background: #fffef7;
+      font: 700 1rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    input[type="number"]:focus, input[type="date"]:focus, select:focus { border-color: #1975a3; outline: 3px solid rgb(25 117 163 / .25); }
+    select:has(#q5:checked) { border-color: #4e8a45; box-shadow: inset 0 0 0 1px #4e8a45; }
+    select:has(option:not(#q5):not([value=""]):checked) { border-color: var(--red); }
+    input[type="date"]:user-invalid { border-color: var(--red); }
+
+    /*
+      Management conditions:
+        M1  :has(#m-headcount:valid)
+        M2  :has(#q5:checked)
+        M3  :has(#m-delegate-replacement:checked)
+        M3x :has(#m-delegate-self:checked)       (secret: self-delegation)
+        M4  :has(#m-effective:valid)
+        M5  :has(#m-code:valid)
+    */
+    .room--headcount .answer:invalid:not(:placeholder-shown) ~ .feedback--bad,
+    .room--effective .answer:user-invalid ~ .feedback--bad { display: block; animation: alarm .18s linear; }
+    .room--budget:has(#m-quarter option:not(#q5):not([value=""]):checked) .feedback--bad,
+    .room--delegation:has(#m-delegate-hr:checked, #m-delegate-manager:checked) .feedback--bad { display: block; animation: alarm .18s linear; }
+
+    .room--headcount:has(#m-headcount:valid) .feedback--good,
+    .room--budget:has(#q5:checked) .feedback--good,
+    .room--delegation:has(#m-delegate-replacement:checked) .feedback--good,
+    .room--delegation:has(#m-delegate-self:checked) .feedback--secret,
+    .room--effective:has(#m-effective:valid) .feedback--good,
+    .room--code:has(#m-code:valid) .feedback--good,
+    .room--headcount:has(#m-headcount:valid) .stamp,
+    .room--budget:has(#q5:checked) .stamp,
+    .room--delegation:has(#m-delegate-replacement:checked) .stamp:not(.stamp--secret),
+    .room--delegation:has(#m-delegate-self:checked) .stamp--secret,
+    .room--effective:has(#m-effective:valid) .stamp,
+    .room--code:has(#m-code:valid) .stamp { display: block; }
+
+    /* Cumulative management gates */
+    form:has(#m-headcount:valid) .room--budget,
+    form:has(#m-headcount:valid):has(#q5:checked) .room--delegation,
+    form:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked) .room--effective,
+    form:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid) .room--code,
+    form:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid):has(#m-code:valid) .ending--management,
+    form:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) .ending--selfmanaged { display: block; }
+
+    body:has(#m-headcount:valid) #management .steps .step:nth-child(1),
+    body:has(#m-headcount:valid):has(#q5:checked) #management .steps .step:nth-child(2),
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked) #management .steps .step:nth-child(3),
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid) #management .steps .step:nth-child(4),
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid):has(#m-code:valid) #management .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); }
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .progress-label--standard { display: none; }
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .progress-label--secret { display: block; }
+
+    .ending--management .ending-inner { border-color: var(--amber); color: #2a2210; background: #f3e6c4; }
+    .ending--management h2 { color: #7a5410; }
+
     @media (max-width: 520px) { .progress { padding-inline: .2rem; } .progress-label { font-size: .58rem; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
     @media print {
@@ -325,7 +409,13 @@
     <h1>FORM<br>HELL</h1>
     <p class="tagline">There is no cancel button.</p>
     <p class="intro">Welcome, Applicant. Your exit request has been received. Please complete the following mandatory fields to demonstrate eligibility for release.</p>
-    <a class="button" href="#compliance">Begin compliance</a>
+    <fieldset class="tracks">
+      <legend>Select application track</legend>
+      <label class="track-option"><input id="mode-standard" type="radio" name="mode" checked><strong>Standard escape</strong><small>For applicants who wish to leave.</small></label>
+      <label class="track-option"><input id="mode-management" type="radio" name="mode"><strong>Management track</strong><small>For applicants who would rather run the form. Harder. No prerequisites; management has never had any.</small></label>
+    </fieldset>
+    <a class="button button--standard" href="#compliance">Begin compliance</a>
+    <a class="button button--management" href="#management">Begin management onboarding</a>
     <details class="violation">
       <summary>*Terms apply.</summary>
       <p>Clause 0.3: Applicants are prohibited from reading Clause 0.3.</p>
@@ -482,7 +572,7 @@
               <dt>Policy violations confessed</dt><dd class="count count--violations"></dd>
               <dt>Alternative disposition</dt><dd>Unclaimed</dd>
             </dl>
-            <p class="rank rank--standard">Rating: Adequately processed.</p>
+            <p class="rank rank--adequate">Rating: Adequately processed.</p>
             <p class="rank rank--exemplary">Rating: Exemplary compliance. You will be studied.</p>
             <p class="rank rank--offender">Rating: Repeat offender. Promotion fast-tracked.</p>
           </div>
@@ -505,12 +595,196 @@
               <dt>Policy violations confessed</dt><dd class="count count--violations"></dd>
               <dt>Alternative disposition</dt><dd>Claimed</dd>
             </dl>
-            <p class="rank rank--standard">Rating: Adequately processed.</p>
+            <p class="rank rank--adequate">Rating: Adequately processed.</p>
             <p class="rank rank--exemplary">Rating: Exemplary compliance. You will be studied.</p>
             <p class="rank rank--offender">Rating: Repeat offender. Promotion fast-tracked.</p>
           </div>
           <a class="escape-link" href="#binding">View print-ready binding copy</a>
           <p id="binding" class="quiet">Use your browser’s print command to file yourself. <a href="">Return to Form Hell</a>. There is no tab to close. You are the tab.</p>
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <main id="management" class="shell">
+    <nav class="progress" aria-label="Management onboarding progress">
+      <p class="progress-label progress-label--standard">Management objectives met</p>
+      <p class="progress-label progress-label--secret">You are the management objectives</p>
+      <div class="steps" aria-label="Five management objectives">
+        <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
+      </div>
+    </nav>
+
+    <form class="form--management" action="#" autocomplete="off">
+      <section class="room room--headcount" aria-labelledby="headcount-title">
+        <fieldset>
+          <legend>M1 · Headcount planning</legend>
+          <p class="system">Organizational chart loading</p>
+          <h2 id="headcount-title">How many do you manage?</h2>
+          <p class="prompt">Enter your team’s current headcount.</p>
+          <div class="policy"><strong>Organizational chart, Department of Existential Administration</strong><br>Reports to: You<br>Manages: You (applicant), You (reviewer), Your replacement (pending)<br>Interns: 2 — unpaid, therefore not headcount<br>Contractors: 4 — documents, not people
+            <details class="violation redacted">
+              <summary>Intern wellbeing report: ███</summary>
+              <p>Intern wellbeing report: they are fine. Asking is a Class B violation.</p>
+              <label><input id="v-interns" type="checkbox"> I asked how they are doing.</label>
+              <p class="violation-note">Violation logged. The interns have been informed that you care. They are concerned.</p>
+            </details>
+          </div>
+          <details class="policy">
+            <summary>Open headcount methodology</summary>
+            <p>Headcount counts roles, not people. A person holding several roles is several heads. A role held by nobody yet still counts, because it has already been budgeted.</p>
+          </details>
+          <label for="m-headcount">Headcount</label>
+          <input class="answer" id="m-headcount" type="number" inputmode="numeric" placeholder="0" required min="3" max="3" step="1">
+          <p class="feedback feedback--bad">Headcount rejected. Finance has counted differently and is never wrong.</p>
+          <p class="feedback feedback--good">Headcount confirmed. All three of you have been notified.</p>
+          <p class="stamp">Span of control verified</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--budget" aria-labelledby="budget-title">
+        <fieldset>
+          <legend>M2 · Budget allocation</legend>
+          <p class="system">Fiscal calendar synchronizing</p>
+          <h2 id="budget-title">When can you afford to leave?</h2>
+          <p class="prompt">Select the quarter in which your departure will be budgeted.</p>
+          <details class="policy">
+            <summary>Read the fiscal allocation memo</summary>
+            <p>Quarters 1 through 4 are fully allocated, including retroactively. Unbudgeted departures roll into the next available quarter. Quarter 0 is reserved for things that never happened.</p>
+          </details>
+          <label for="m-quarter">Budget quarter</label>
+          <select id="m-quarter" required>
+            <option value="">Select a quarter…</option>
+            <option value="Q0">Q0</option>
+            <option value="Q1">Q1</option>
+            <option value="Q2">Q2</option>
+            <option value="Q3">Q3</option>
+            <option value="Q4">Q4</option>
+            <option id="q5" value="Q5">Q5</option>
+          </select>
+          <details class="hint">
+            <summary>Request assistance</summary>
+            <p>Every quarter that has a number you recognise is already spent. Count onward.</p>
+          </details>
+          <p class="feedback feedback--bad">That quarter is fully allocated. Your departure has been deferred indefinitely.</p>
+          <p class="feedback feedback--good">Departure budgeted for Q5. Finance thanks you for your patience in advance.</p>
+          <p class="stamp">Funds encumbered</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--delegation" aria-labelledby="delegation-title">
+        <fieldset>
+          <legend>M3 · Delegation</legend>
+          <p class="system">Responsibility transfer protocol</p>
+          <h2 id="delegation-title">Who will process your exit?</h2>
+          <p class="prompt">Managers do not complete their own paperwork. Delegate your departure.</p>
+          <details class="policy">
+            <summary>Open the delegation policy</summary>
+            <p>Tasks may be delegated only to a direct report. When several direct reports are eligible, the task goes to the one with the least seniority.</p>
+          </details>
+          <div class="choice-set" role="radiogroup" aria-label="Delegate your departure to">
+            <label><input id="m-delegate-hr" type="radio" name="delegate" required> Human Resources</label>
+            <label><input id="m-delegate-manager" type="radio" name="delegate"> Your manager</label>
+            <label><input id="m-delegate-self" type="radio" name="delegate"> Yourself</label>
+            <label><input id="m-delegate-replacement" type="radio" name="delegate"> Your replacement</label>
+          </div>
+          <p class="feedback feedback--bad">Delegation upward detected. Upward delegation is called “asking for help” and is not supported.</p>
+          <p class="feedback feedback--good">Delegated. Your replacement has accepted the task of removing you.</p>
+          <p class="feedback feedback--secret">Delegation accepted. You have been assigned to yourself.</p>
+          <p class="stamp">Responsibility transferred</p>
+          <p class="stamp stamp--secret">Fully self-managed</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--effective" aria-labelledby="effective-title">
+        <fieldset>
+          <legend>M4 · Termination effective date</legend>
+          <p class="system">Personnel file retrieved</p>
+          <h2 id="effective-title">When does it take effect?</h2>
+          <p class="prompt">Enter the effective date of your termination.</p>
+          <div class="policy"><strong>Personnel file</strong><br>Date of birth: 21 August 1996<br>Hire date: Before<br>Last day: Pending
+            <details class="violation redacted">
+              <summary>Disciplinary record: ████████</summary>
+              <p>Disciplinary record: reading your own personnel file.</p>
+              <label><input id="v-record" type="checkbox"> I read my own file.</label>
+              <p class="violation-note">Violation logged. The record has been updated to include itself.</p>
+            </details>
+          </div>
+          <details class="policy">
+            <summary>Read the backdating guideline</summary>
+            <p>Terminations take effect on the earliest entry in the personnel file that is actually a date.</p>
+          </details>
+          <label for="m-effective">Effective date</label>
+          <input class="answer" id="m-effective" type="date" required min="1996-08-21" max="1996-08-21">
+          <details class="hint">
+            <summary>Request assistance</summary>
+            <p>“Before” and “Pending” are not dates. Only one line is.</p>
+          </details>
+          <p class="feedback feedback--bad">Date rejected. That day is still in use.</p>
+          <p class="feedback feedback--good">Termination backdated. You were never technically employed, which simplifies severance.</p>
+          <p class="stamp">Retroactively effective</p>
+        </fieldset>
+      </section>
+
+      <section class="room room--code" aria-labelledby="code-title">
+        <fieldset>
+          <legend>M5 · Sign-off</legend>
+          <p class="system">Authorization code required</p>
+          <h2 id="code-title">Authorize yourself.</h2>
+          <p class="prompt">Enter the authorization code for your departure.</p>
+          <p class="policy">Authorization codes use the format <strong>HEADCOUNT-QUARTER-YEAR-DELEGATE</strong>, where YEAR is the year your termination takes effect and DELEGATE is the last word of whoever you delegated to. Example: <code>12-Q2-2019-FINANCE</code>.</p>
+          <label for="m-code">Authorization code</label>
+          <input class="answer" id="m-code" type="text" placeholder="____-__-____-______" required pattern="3-[Qq]5-1996-[Rr][Ee][Pp][Ll][Aa][Cc][Ee][Mm][Ee][Nn][Tt]">
+          <details class="hint">
+            <summary>Request assistance</summary>
+            <p>Every part of the code is an answer you have already given on this track, in the order the format names them.</p>
+          </details>
+          <p class="feedback feedback--good">Code accepted. You have authorized yourself to stop authorizing things.</p>
+          <p class="stamp">Signed off</p>
+        </fieldset>
+      </section>
+
+      <section id="severance" class="ending ending--management" aria-labelledby="severance-title">
+        <div class="ending-inner">
+          <p class="eyebrow">Form 0-0/M · Disposition complete</p>
+          <h2 id="severance-title">Exit approved, with severance.</h2>
+          <p>Congratulations, Manager. You have left Form Hell on your own terms, which were drafted by the company.</p>
+          <p>Your severance package contains one (1) copy of Form 0-0, pre-filled. Your replacement has been asked to give it to the next applicant.</p>
+          <div class="scorecard">
+            <p class="eyebrow">Applicant performance review</p>
+            <dl>
+              <dt>Assistance requests logged</dt><dd class="count count--hints"></dd>
+              <dt>Policy violations confessed</dt><dd class="count count--violations"></dd>
+              <dt>Alternative disposition</dt><dd>Unclaimed</dd>
+            </dl>
+            <p class="rank rank--adequate">Rating: Adequately managed.</p>
+            <p class="rank rank--exemplary">Rating: Exemplary leadership. You will be promoted beyond reach.</p>
+            <p class="rank rank--offender">Rating: Repeat offender. You have been made an example, then a template.</p>
+          </div>
+          <a class="escape-link" href="#severance-certificate">View print-ready severance letter</a>
+          <p id="severance-certificate" class="quiet">Use your browser’s print command to keep your severance letter. <a href="">Return to Form Hell</a>. Close this tab and call it a strategic realignment.</p>
+        </div>
+      </section>
+
+      <section id="selfmanaged" class="ending ending--secret ending--selfmanaged" aria-labelledby="selfmanaged-title">
+        <div class="ending-inner">
+          <p class="eyebrow">Form 0-0/M · Disposition reversed</p>
+          <h2 id="selfmanaged-title">Self-management achieved.</h2>
+          <p>You delegated your exit to yourself, and you delegated it back. The task now circulates between you indefinitely, which Finance records as productivity.</p>
+          <p>You have been promoted to a department. Your door has your name on it. It does not open from the inside.</p>
+          <div class="scorecard">
+            <p class="eyebrow">Applicant performance review</p>
+            <dl>
+              <dt>Assistance requests logged</dt><dd class="count count--hints"></dd>
+              <dt>Policy violations confessed</dt><dd class="count count--violations"></dd>
+              <dt>Alternative disposition</dt><dd>Claimed</dd>
+            </dl>
+            <p class="rank rank--adequate">Rating: Adequately managed.</p>
+            <p class="rank rank--exemplary">Rating: Exemplary leadership. You will be promoted beyond reach.</p>
+            <p class="rank rank--offender">Rating: Repeat offender. You have been made an example, then a template.</p>
+          </div>
+          <a class="escape-link" href="#selfmanaged-certificate">View print-ready org chart</a>
+          <p id="selfmanaged-certificate" class="quiet">Use your browser’s print command to file your org chart. <a href="">Return to Form Hell</a>. You cannot close this tab. You report to it.</p>
         </div>
       </section>
     </form>
