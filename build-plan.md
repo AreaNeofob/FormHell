@@ -242,7 +242,7 @@ Implemented additions:
 
 ## Management Track
 
-A second, harder route through the form. The player picks it on the opening screen. It reuses the room, policy, hint, violation, stamp, feedback, scorecard and ending components, and it uses the input types the standard track does not: `number`, `<select>` and `date`.
+A second, harder route through the form. The player picks it on the opening screen. It reuses the room, policy, hint, violation, stamp, feedback, scorecard and ending components, and adds a `<select>`, which the standard track does not use.
 
 ### Track selection
 
@@ -252,7 +252,7 @@ Two radios in the masthead (`#mode-standard`, checked by default, and `#mode-man
 
 > Enter your team's current headcount.
 
-The org chart lists: Manages: You (applicant), You (reviewer), Your replacement (pending). Interns: 2, unpaid, therefore not headcount. Contractors: 4, documents, not people. The methodology says headcount counts roles, not people, and that a budgeted role held by nobody still counts. **Answer: 3** (`type="number" min="3" max="3"`).
+The org chart lists: Manages: You (applicant), You (reviewer), Your replacement (pending). Interns: 2, unpaid, therefore not headcount. Contractors: 4, documents, not people. The methodology says headcount counts roles, not people, and that a budgeted role held by nobody still counts. **Answer: 3** (text input, `pattern="3|three"`, case-insensitive).
 
 ### M2 — Budget allocation
 
@@ -272,7 +272,7 @@ The policy says tasks may be delegated only to a direct report, and to the one w
 
 > Enter the effective date of your termination.
 
-The personnel file shows Date of birth: 21 August 1996, Hire date: Before, Last day: Pending. The guideline says terminations take effect on the earliest entry that is actually a date. **Answer: 1996-08-21** (`type="date" min="1996-08-21" max="1996-08-21"`).
+The personnel file shows Date of birth: 21 August 1996, Hire date: Before, Last day: Pending. The guideline says terminations take effect on the earliest entry that is actually a date. **Answer: 1996-08-21.** This is a text input whose pattern accepts common formats: `1996-08-21`, `19960821`, `21/08/1996`, `21.8.1996`, `21-08-1996`, `08/21/1996`, `21 August 1996`, `21 Aug 1996` and `August 21, 1996`.
 
 ### M5 — Sign-off
 
@@ -321,9 +321,9 @@ The following details were added during feasibility review and are required for 
 - Each track's ratings are scoped to its own `<main>` (`#compliance …` / `#management …`) and its own violation IDs. The masthead violation `#v-clause` counts for both. Counters need no scoping, because `counter-increment` ignores elements inside the hidden track.
 - The standard track's progress rail and secret-rail rules are scoped to `#compliance`, and the Management ones to `#management`.
 - A `<select>` gate tests the specific `<option>` with `:checked`; its wrong-answer state is `option:not(#q5):not([value=""]):checked`. Never nest `:has()` inside `:has()`: an invalid selector drops the *whole* selector list it is in.
-- Wrong-answer feedback for the date input uses `:user-invalid`, because date inputs have no placeholder.
 - **Wrong-answer messages:** each wrong radio in Rooms 2–3 has its own message, gated by that radio's ID. Room 4 shows "over-consent" when any forbidden box is checked, unless all six are (the secret path). Room 5 and M5 show a message while any field is invalid and non-empty, like Room 1.
-- **Panel jitter:** only wrong *choices* (radios, the Room 4 checkboxes, the select and the date input) shake their panel. Text fields don't, so they don't shake while being typed in. A CSS animation replays only when its name changes, so wrong radios cycle between the identical keyframes `jitter-1`, `jitter-2` and `jitter-3`, and switching from one wrong option to another replays the shake.
+- **Panel jitter:** only wrong *choices* (radios, the Room 4 checkboxes and the select) shake their panel. Text fields don't, so they don't shake while being typed in. A CSS animation replays only when its name changes, so wrong radios cycle between the identical keyframes `jitter-1`, `jitter-2` and `jitter-3`, and switching from one wrong option to another replays the shake.
 - **Red alert after Room 3:** a fixed `body::after` overlay plays `redalert` once whenever Rooms 1–3 become solved, in the standard track only.
 - **Progress count:** "n / 5" uses a `resolved` counter that is reset on `.progress` and incremented by the same cumulative rules that light each dot. The count element sits *after* the dots in the markup, because counters follow document order.
 - **Loading bar:** the masthead bar animates a registered `@property --pct` integer and its own width to 99% over 7 s, then pulses forever. With reduced motion it jumps straight to 99%.
+- **Never give a single answer as a range or step limit.** Number and date inputs let the player step with arrow keys, the scroll wheel or the spinner, and stepping always lands on a value the field accepts. `min="3" max="3"` therefore hands out the answer. Exact-value answers must be text inputs with a `pattern`. (M1 and M4 originally used `type="number"` and `type="date"` and could be solved by pressing an arrow key.)
