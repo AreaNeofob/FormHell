@@ -22,6 +22,11 @@ The game unfolds down a single page. Each cleared room reveals the next one:
 4. Consent to Be Processed
 5. Exit Interview
 
+Choose a track on the opening screen:
+
+- **Standard escape:** the original five rooms.
+- **Management track:** a harder route with headcount, budgeting, delegation, backdating and sign-off. It has its own ending, secret ending and violations.
+
 Look closely at the expandable policy notes. They contain everything needed to solve the puzzles.
 
 There is more on the page than the main route:
@@ -37,7 +42,8 @@ The ending includes a print-ready certificate. Use the browser’s normal print 
 ## Implementation notes
 
 - Native form validation (`required` and `pattern`) checks text answers.
-- Radio buttons and checkboxes hold choice state.
+- Radio buttons, checkboxes, a `<select>`, and `number`/`date` inputs hold answer state.
+- A masthead radio pair switches between the Standard and Management tracks.
 - CSS `:valid`, `:checked`, and `:has()` control the progression, completion messages, and progress rail.
 - `<details>` elements provide optional lore and hints.
 - CSS counters tally opened hints and confessed violations for the scorecard.

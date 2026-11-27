@@ -240,9 +240,57 @@ Implemented additions:
   - `Repeat offender` — all three violations confessed.
   - `Adequately processed` — everything else.
 
-Still possible later:
+## Management Track
 
-- `Standard Escape` and `Management Track` modes as separate sections sharing the same components and styles.
+A second, harder route through the form. The player picks it on the opening screen. It reuses the room, policy, hint, violation, stamp, feedback, scorecard and ending components, and it uses the input types the standard track does not: `number`, `<select>` and `date`.
+
+### Track selection
+
+Two radios in the masthead (`#mode-standard`, checked by default, and `#mode-management`) choose the track. `body:has(#mode-management:checked)` hides `<main id="compliance">` and its Begin button, and shows `<main id="management">` and its own Begin button. Each track keeps its state when the player switches back and forth.
+
+### M1 — Headcount planning
+
+> Enter your team's current headcount.
+
+The org chart lists: Manages: You (applicant), You (reviewer), Your replacement (pending). Interns: 2, unpaid, therefore not headcount. Contractors: 4, documents, not people. The methodology says headcount counts roles, not people, and that a budgeted role held by nobody still counts. **Answer: 3** (`type="number" min="3" max="3"`).
+
+### M2 — Budget allocation
+
+> Select the quarter in which your departure will be budgeted.
+
+The memo says Q1–Q4 are fully allocated, unbudgeted departures roll into the next available quarter, and Q0 is reserved for things that never happened. **Answer: Q5.** This is a required `<select>`, gated by the `#q5` option being `:checked`, because any non-empty option would make the select `:valid`.
+
+### M3 — Delegation
+
+> Delegate your departure.
+
+The policy says tasks may be delegated only to a direct report, and to the one with the least seniority. **Answer: Your replacement** (still pending). HR and Your manager are upward delegation and get a wrong-answer message.
+
+**Secret ending — Self-management achieved:** choosing *Yourself* is wrong but consistent, since you do report to yourself. Like the standard secret ending, it replaces the rest of the track: M4–M5 stay hidden, the rail turns red and its label becomes `YOU ARE THE MANAGEMENT OBJECTIVES`.
+
+### M4 — Termination effective date
+
+> Enter the effective date of your termination.
+
+The personnel file shows Date of birth: 21 August 1996, Hire date: Before, Last day: Pending. The guideline says terminations take effect on the earliest entry that is actually a date. **Answer: 1996-08-21** (`type="date" min="1996-08-21" max="1996-08-21"`).
+
+### M5 — Sign-off
+
+> Enter the authorization code for your departure.
+
+The format is `HEADCOUNT-QUARTER-YEAR-DELEGATE`, where YEAR is the effective year and DELEGATE is the last word of the delegate. **Answer: `3-Q5-1996-REPLACEMENT`** (case-insensitive `pattern`).
+
+### Endings
+
+- **Exit approved, with severance:** the amber standard Management ending.
+- **Self-management achieved:** the red secret ending.
+
+Both have a scorecard with Management-specific ratings: `Adequately managed`, `Exemplary leadership` and `Repeat offender`.
+
+### Management violations and hints
+
+- **Violations:** the masthead `#v-clause` (shared with the standard track), the M1 intern wellbeing report `#v-interns`, and the M4 disciplinary record `#v-record`.
+- **Hints:** in M2, M4 and M5.
 
 ## File structure
 
@@ -270,3 +318,7 @@ The following details were added during feasibility review and are required for 
 - Scorecard numbers use CSS counters: `counter-reset: hints violations` on `body`, `counter-increment` on `.hint[open]` and on `.violation:has(input:checked)`, displayed with `counter()` in `::before`. The scorecard is later in document order than every counted element, so it shows final totals. Closing a hint un-logs it; this is accepted.
 - Ratings are mutually exclusive `:has()` conditions on `body` (none open/checked vs. all three violation IDs checked); the standard rating is the default.
 - Print styles hide `.room` elements, not `form`, because both endings live inside the form. Printing shows whichever ending is currently unlocked.
+- Each track's ratings are scoped to its own `<main>` (`#compliance …` / `#management …`) and its own violation IDs. The masthead violation `#v-clause` counts for both. Counters need no scoping, because `counter-increment` ignores elements inside the hidden track.
+- The standard track's progress rail and secret-rail rules are scoped to `#compliance`, and the Management ones to `#management`.
+- A `<select>` gate tests the specific `<option>` with `:checked`; its wrong-answer state is `option:not(#q5):not([value=""]):checked`. Never nest `:has()` inside `:has()`: an invalid selector drops the *whole* selector list it is in.
+- Wrong-answer feedback for the date input uses `:user-invalid`, because date inputs have no placeholder.
