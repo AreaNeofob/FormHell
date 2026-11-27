@@ -106,6 +106,10 @@
     }
 
     .progress-label { margin: 0; color: var(--muted); font-size: .68rem; }
+    .progress { counter-reset: resolved; padding-inline: .6rem; }
+    .progress-meter { display: flex; align-items: center; gap: .8rem; }
+    .progress-count { margin: 0; min-width: 5ch; padding-right: .1em; white-space: nowrap; color: var(--paper); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .1em; text-align: right; }
+    .progress-count::before { content: counter(resolved) " / 5"; }
     .steps { display: flex; gap: .42rem; }
     .step { width: .62rem; height: .62rem; border: 1px solid var(--muted); border-radius: 50%; }
     .step.done { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
@@ -123,6 +127,14 @@
     @keyframes arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes alarm { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(-4px); } 60% { transform: translateX(4px); } }
     @keyframes blink { 50% { opacity: .2; } }
+    /* Panel jitter: identical keyframes under three names, so switching from one wrong radio to another replays it. */
+    @keyframes jitter-1 { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(-7px) rotate(-.4deg); } 35% { transform: translateX(6px) rotate(.3deg); } 55% { transform: translateX(-4px); } 75% { transform: translateX(2px); } }
+    @keyframes jitter-2 { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(-7px) rotate(-.4deg); } 35% { transform: translateX(6px) rotate(.3deg); } 55% { transform: translateX(-4px); } 75% { transform: translateX(2px); } }
+    @keyframes jitter-3 { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(-7px) rotate(-.4deg); } 35% { transform: translateX(6px) rotate(.3deg); } 55% { transform: translateX(-4px); } 75% { transform: translateX(2px); } }
+    @keyframes redalert { 0% { opacity: 0; } 8% { opacity: .42; } 22% { opacity: .08; } 36% { opacity: .34; } 100% { opacity: 0; } }
+    @property --pct { syntax: "<integer>"; inherits: false; initial-value: 0; }
+    @keyframes load { from { --pct: 0; width: 0; } to { --pct: 99; width: 99%; } }
+    @keyframes stall { 50% { opacity: .55; } }
 
     fieldset {
       position: relative;
@@ -197,6 +209,39 @@
       font-weight: 900;
       transform: rotate(-3deg);
     }
+    /* Wrong-answer messages for choice rooms */
+    .room--temporal:has(#temporal-birth:checked) .feedback--birth,
+    .room--temporal:has(#temporal-immediately:checked) .feedback--immediately,
+    .room--emergency:has(#contact-family:checked) .feedback--family,
+    .room--emergency:has(#contact-authorities:checked) .feedback--authorities,
+    .room--emergency:has(#contact-myself:checked) .feedback--myself,
+    .room--consent:has(#read:checked, #understand:checked, #agree:checked, #waive:checked):not(:has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked)) .feedback--bad,
+    .room--exit:has(input:invalid:not(:placeholder-shown)) .feedback--bad,
+    .room--code .answer:invalid:not(:placeholder-shown) ~ .feedback--bad { display: block; animation: alarm .18s linear; }
+
+    /* Panel jitter on wrong choices. Text fields are left alone so they don't shake while being typed in. */
+    .room--temporal:has(#temporal-birth:checked) fieldset,
+    .room--emergency:has(#contact-family:checked) fieldset,
+    .room--delegation:has(#m-delegate-hr:checked) fieldset { animation: jitter-1 .42s ease-out; }
+    .room--temporal:has(#temporal-immediately:checked) fieldset,
+    .room--emergency:has(#contact-authorities:checked) fieldset,
+    .room--delegation:has(#m-delegate-manager:checked) fieldset { animation: jitter-2 .42s ease-out; }
+    .room--emergency:has(#contact-myself:checked) fieldset,
+    .room--consent:has(#read:checked, #understand:checked, #agree:checked, #waive:checked):not(:has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked)) fieldset,
+    .room--budget:has(#m-quarter option:not(#q5):not([value=""]):checked) fieldset,
+    .room--effective:has(.answer:user-invalid) fieldset { animation: jitter-3 .42s ease-out; }
+
+    /* Red alert after Room 3: a full-screen flash that plays once each time the condition starts to hold. */
+    body::after { content: ""; position: fixed; z-index: 50; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 40%, rgb(242 88 75 / .55), rgb(120 12 8 / .9)); }
+    body:has(#mode-standard:checked):has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked)::after { animation: redalert 1.6s ease-out; }
+
+    /* Almost-complete loading bar */
+    .loading { max-width: 30rem; }
+    .loading-label { margin: 0 0 .35rem; color: var(--muted); font: .72rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
+    .loading-label::after { content: " … " counter(pct) "%"; counter-reset: pct var(--pct); animation: load 7s cubic-bezier(.1, .9, .2, 1) forwards; color: var(--amber); }
+    .loading-bar { height: .45rem; border: 1px solid var(--line); }
+    .loading-bar::after { content: ""; display: block; height: 100%; width: 0; background: var(--amber); animation: load 7s cubic-bezier(.1, .9, .2, 1) forwards, stall 1.4s 7s ease-in-out infinite; }
+
     .stamp--secret { border-color: var(--red); color: #a7332d; transform: rotate(2deg); }
     .feedback--secret { border-left: 4px solid var(--red); color: #7d201b; background: #f3d2c8; }
 
@@ -240,11 +285,11 @@
     body:has(#identity:valid):has(#temporal-before:checked) #compliance .steps .step:nth-child(2),
     body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked) #compliance .steps .step:nth-child(3),
     body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) #compliance .steps .step:nth-child(4),
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)):has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) #compliance .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)):has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) #compliance .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); counter-increment: resolved; }
 
     /* Secret disposition: the whole rail turns red and the label changes */
     .progress-label--secret { display: none; color: var(--red); }
-    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); counter-increment: resolved; }
     body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .progress-label--standard { display: none; }
     body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) #compliance .progress-label--secret { display: block; }
 
@@ -304,6 +349,9 @@
       box-shadow: 9px 9px 0 #0a0e13;
     }
     .ending h2 { color: #225e30; }
+    .ending .eyebrow { color: #3c5f32; }
+    .ending--management .eyebrow { color: #6e4c0e; }
+    .ending--secret .eyebrow { color: #8f231c; }
     .ending--secret .ending-inner { border-color: var(--red); color: #2b1412; background: #f1d6cc; }
     .ending--secret h2 { color: #8f231c; font-size: clamp(2rem, 7vw, 3.4rem); }
     .ending--secret .escape-link { border-color: var(--red); background: var(--red); }
@@ -382,8 +430,8 @@
     body:has(#m-headcount:valid):has(#q5:checked) #management .steps .step:nth-child(2),
     body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked) #management .steps .step:nth-child(3),
     body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid) #management .steps .step:nth-child(4),
-    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid):has(#m-code:valid) #management .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
-    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); }
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-replacement:checked):has(#m-effective:valid):has(#m-code:valid) #management .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); counter-increment: resolved; }
+    body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); counter-increment: resolved; }
     body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .progress-label--standard { display: none; }
     body:has(#m-headcount:valid):has(#q5:checked):has(#m-delegate-self:checked) #management .progress-label--secret { display: block; }
 
@@ -409,6 +457,7 @@
     <h1>FORM<br>HELL</h1>
     <p class="tagline">There is no cancel button.</p>
     <p class="intro">Welcome, Applicant. Your exit request has been received. Please complete the following mandatory fields to demonstrate eligibility for release.</p>
+    <div class="loading" aria-hidden="true"><p class="loading-label">Processing exit request</p><div class="loading-bar"></div></div>
     <fieldset class="tracks">
       <legend>Select application track</legend>
       <label class="track-option"><input id="mode-standard" type="radio" name="mode" checked><strong>Standard escape</strong><small>For applicants who wish to leave.</small></label>
@@ -428,8 +477,11 @@
     <nav class="progress" aria-label="Compliance progress">
       <p class="progress-label progress-label--standard">Compliance events resolved</p>
       <p class="progress-label progress-label--secret">You are the compliance events</p>
-      <div class="steps" aria-label="Five compliance events">
-        <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
+      <div class="progress-meter">
+        <div class="steps" aria-label="Five compliance events">
+          <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
+        </div>
+        <p class="progress-count"></p>
       </div>
     </nav>
 
@@ -467,14 +519,16 @@
             </details>
           </div>
           <div class="choice-set" role="radiogroup" aria-label="Date you began working here">
-            <label><input type="radio" name="temporal" required> 21 August 1996</label>
-            <label><input type="radio" name="temporal"> Immediately</label>
+            <label><input id="temporal-birth" type="radio" name="temporal" required> 21 August 1996</label>
+            <label><input id="temporal-immediately" type="radio" name="temporal"> Immediately</label>
             <label><input id="temporal-before" type="radio" name="temporal"> Before</label>
           </div>
           <details class="hint">
             <summary>Request assistance</summary>
             <p>You were asked when you began. Only one line of the profile is an answer to that question rather than to a different one.</p>
           </details>
+          <p class="feedback feedback--bad feedback--birth">That is the date you began existing. Employment began earlier.</p>
+          <p class="feedback feedback--bad feedback--immediately">“Immediately” is a speed, not a date. Your answer has been forwarded to Logistics.</p>
           <p class="feedback feedback--good">Thank you. Seniority has been adjusted retroactively.</p>
           <p class="stamp">Temporal status aligned</p>
         </fieldset>
@@ -497,11 +551,14 @@
             <p>Emergencies are autonomous corporate stakeholders and must be informed of any change to their operational environment.</p>
           </details>
           <div class="choice-set" role="radiogroup" aria-label="Emergency contact">
-            <label><input type="radio" name="emergency" required> My family</label>
-            <label><input type="radio" name="emergency"> Local authorities</label>
-            <label><input type="radio" name="emergency"> Myself</label>
+            <label><input id="contact-family" type="radio" name="emergency" required> My family</label>
+            <label><input id="contact-authorities" type="radio" name="emergency"> Local authorities</label>
+            <label><input id="contact-myself" type="radio" name="emergency"> Myself</label>
             <label><input id="contact-emergency" type="radio" name="emergency"> The emergency</label>
           </div>
+          <p class="feedback feedback--bad feedback--family">Your family has been notified that they are not an emergency. They took it well.</p>
+          <p class="feedback feedback--bad feedback--authorities">Local authorities have no jurisdiction here. Nobody does.</p>
+          <p class="feedback feedback--bad feedback--myself">You are already aware. Notifying you would be redundant, and redundancy is handled by Room 5.</p>
           <p class="feedback feedback--good">Emergency notified. It appreciates the courtesy.</p>
           <p class="stamp">Incident escalated</p>
         </fieldset>
@@ -529,6 +586,7 @@
             <summary>Request assistance</summary>
             <p>Only statements that a document could truthfully make about itself are true. Exactly two qualify.</p>
           </details>
+          <p class="feedback feedback--bad">Over-consent detected. Some of these statements can only be made by a person, and the company does not recognize those.</p>
           <p class="feedback feedback--good">Consent has been extracted. Thank you for volunteering it.</p>
           <p class="feedback feedback--secret">All statements confirmed. The terms have read, understood and agreed to themselves.</p>
           <p class="stamp">Personhood archived</p>
@@ -554,6 +612,7 @@
             <summary>Request assistance</summary>
             <p>Every blank was answered earlier: your name (Room 1), when you began (Room 2), what you are (Room 4), whom we notify (Room 3), and how binding you are (Room 4).</p>
           </details>
+          <p class="feedback feedback--bad">Statement does not match our records of you. Your records are correct.</p>
           <p class="feedback feedback--good">Departure request received. Reviewing your eligibility to have ever been here.</p>
           <p class="stamp">Departure language accepted</p>
         </fieldset>
@@ -610,8 +669,11 @@
     <nav class="progress" aria-label="Management onboarding progress">
       <p class="progress-label progress-label--standard">Management objectives met</p>
       <p class="progress-label progress-label--secret">You are the management objectives</p>
-      <div class="steps" aria-label="Five management objectives">
-        <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
+      <div class="progress-meter">
+        <div class="steps" aria-label="Five management objectives">
+          <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
+        </div>
+        <p class="progress-count"></p>
       </div>
     </nav>
 
@@ -739,6 +801,7 @@
             <summary>Request assistance</summary>
             <p>Every part of the code is an answer you have already given on this track, in the order the format names them.</p>
           </details>
+          <p class="feedback feedback--bad">Code rejected. Please reauthorize your authorization.</p>
           <p class="feedback feedback--good">Code accepted. You have authorized yourself to stop authorizing things.</p>
           <p class="stamp">Signed off</p>
         </fieldset>
