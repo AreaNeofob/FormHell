@@ -24,6 +24,14 @@ The game unfolds down a single page. Each cleared room reveals the next one:
 
 Look closely at the expandable policy notes. They contain everything needed to solve the puzzles.
 
+There is more on the page than the main route:
+
+- **Assistance** is available in some rooms. It is logged.
+- **Three policy violations** are hidden in places a careful applicant would not look.
+- **A second disposition** exists for applicants whose answers are wrong in exactly the right way.
+
+Both endings show a performance review with your assistance requests, confessed violations and a rating.
+
 The ending includes a print-ready certificate. Use the browser’s normal print command to print it; plain HTML cannot open the print dialog by itself.
 
 ## Implementation notes
@@ -32,7 +40,8 @@ The ending includes a print-ready certificate. Use the browser’s normal print 
 - Radio buttons and checkboxes hold choice state.
 - CSS `:valid`, `:checked`, and `:has()` control the progression, completion messages, and progress rail.
 - `<details>` elements provide optional lore and hints.
-- `@media print` displays the final certificate cleanly when printed.
+- CSS counters tally opened hints and confessed violations for the scorecard.
+- `@media print` displays whichever ending is unlocked cleanly when printed.
 
 ## Files
 
