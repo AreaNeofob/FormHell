@@ -197,28 +197,91 @@
       font-weight: 900;
       transform: rotate(-3deg);
     }
+    .stamp--secret { border-color: var(--red); color: #a7332d; transform: rotate(2deg); }
+    .feedback--secret { border-left: 4px solid var(--red); color: #7d201b; background: #f3d2c8; }
+
+    /*
+      Solution conditions (see build-plan.md, "Implementation refinements"):
+        S1  :has(#identity:valid)
+        S2  :has(#temporal-before:checked)
+        S3  :has(#contact-emergency:checked)
+        S4  :has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked))
+        S4x :has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked)
+        S5  :has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid)
+      Room-local stamps and feedback test only their own room. Room gates,
+      endings and the progress rail are cumulative: every earlier condition
+      must still hold, so un-solving a room hides everything after it.
+    */
+
+    /* Room-local completion messages and stamps */
     .room--identity:has(#identity:valid) .stamp,
     .room--temporal:has(#temporal-before:checked) .stamp,
     .room--emergency:has(#contact-emergency:checked) .stamp,
-    .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .stamp,
+    .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .stamp:not(.stamp--secret),
+    .room--consent:has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .stamp--secret,
     .room--exit:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .stamp { display: block; }
 
     .room--temporal:has(#temporal-before:checked) .feedback--good,
     .room--emergency:has(#contact-emergency:checked) .feedback--good,
     .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .feedback--good,
+    .room--consent:has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .feedback--secret,
     .room--exit:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .feedback--good { display: block; }
 
-    .room--identity:has(#identity:valid) + .room,
-    .room--temporal:has(#temporal-before:checked) + .room,
-    .room--emergency:has(#contact-emergency:checked) + .room,
-    .room--consent:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) + .room,
-    .room--exit:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) + .ending { display: block; }
+    /* Cumulative room gates */
+    form:has(#identity:valid) .room--temporal,
+    form:has(#identity:valid):has(#temporal-before:checked) .room--emergency,
+    form:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked) .room--consent,
+    form:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .room--exit,
+    form:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)):has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .ending--standard,
+    form:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .ending--secret { display: block; }
 
+    /* Cumulative progress rail */
     body:has(#identity:valid) .steps .step:nth-child(1),
-    body:has(#temporal-before:checked) .steps .step:nth-child(2),
-    body:has(#contact-emergency:checked) .steps .step:nth-child(3),
-    body:has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .steps .step:nth-child(4),
-    body:has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+    body:has(#identity:valid):has(#temporal-before:checked) .steps .step:nth-child(2),
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked) .steps .step:nth-child(3),
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)) .steps .step:nth-child(4),
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#terms:checked):has(#nonbinding:checked):not(:has(#read:checked, #understand:checked, #agree:checked, #waive:checked)):has(#final-name:valid):has(#final-began:valid):has(#final-authorize:valid):has(#final-notify:valid):has(#final-am:valid) .steps .step:nth-child(5) { border-color: var(--green); background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+    /* Secret disposition: the whole rail turns red and the label changes */
+    .progress-label--secret { display: none; color: var(--red); }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .steps .step { border-color: var(--red); background: var(--red); box-shadow: 0 0 12px var(--red); }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .progress-label--standard { display: none; }
+    body:has(#identity:valid):has(#temporal-before:checked):has(#contact-emergency:checked):has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked) .progress-label--secret { display: block; }
+
+    /* Hidden policy violations */
+    .violation { margin: .8rem 0 0; font-size: .78rem; }
+    .violation summary { width: fit-content; font-weight: 400; color: #8a8f86; list-style: none; }
+    .violation summary::-webkit-details-marker { display: none; }
+    .violation[open] summary { color: var(--red); }
+    .violation p, .violation label { margin: .45rem 0 0; color: #5a3a35; }
+    .masthead .violation summary { color: #4d5a63; }
+    .masthead .violation p, .masthead .violation label { color: #c6c5bb; }
+    .violation-note { display: none; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--red) !important; font-weight: 700; }
+    .violation:has(input:checked) .violation-note { display: block; animation: alarm .18s linear; }
+    .redacted summary { display: inline; color: inherit; }
+
+    /* Assistance requests (counted on the scorecard) */
+    .hint { margin: 1rem 0 0; font-size: .88rem; color: #5b5444; }
+    .hint summary { width: fit-content; font-weight: 700; color: #7a6a3f; }
+    .hint[open] summary::after { content: " — request logged"; color: var(--red); font-weight: 400; }
+    .hint p { margin: .45rem 0 0; max-width: 57ch; }
+
+    /* Scorecard: CSS counters tally open hints and confessed violations */
+    body { counter-reset: hints violations; }
+    .hint[open] { counter-increment: hints; }
+    .violation:has(input:checked) { counter-increment: violations; }
+    .scorecard { margin: 1.6rem 0; border-block: 1px dashed currentColor; padding: 1rem 0; }
+    .scorecard dl { display: grid; grid-template-columns: 1fr auto; gap: .35rem 1rem; margin: .6rem 0 0; }
+    .scorecard dt { margin: 0; }
+    .scorecard dd { margin: 0; font: 800 1rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-align: right; }
+    .count--hints::before { content: counter(hints) " / 3"; }
+    .count--violations::before { content: counter(violations) " / 3"; }
+    .rank { display: none; margin: .9rem 0 0; font-weight: 800; }
+    .rank--standard { display: block; }
+    body:not(:has(.hint[open])):not(:has(.violation input:checked)) .rank--standard,
+    body:has(#v-clause:checked):has(#v-redacted:checked):has(#v-footnote:checked) .rank--standard { display: none; }
+    body:not(:has(.hint[open])):not(:has(.violation input:checked)) .rank--exemplary,
+    body:has(#v-clause:checked):has(#v-redacted:checked):has(#v-footnote:checked) .rank--offender { display: block; }
 
     .choice-set { margin: 1rem 0; }
     .choice-set label { padding: .22rem .3rem; }
@@ -236,15 +299,21 @@
       box-shadow: 9px 9px 0 #0a0e13;
     }
     .ending h2 { color: #225e30; }
+    .ending--secret .ending-inner { border-color: var(--red); color: #2b1412; background: #f1d6cc; }
+    .ending--secret h2 { color: #8f231c; font-size: clamp(2rem, 7vw, 3.4rem); }
+    .ending--secret .escape-link { border-color: var(--red); background: var(--red); }
     .quiet { margin-top: 1.5rem; color: #45534a; font-size: .9rem; }
+    .ending--secret .quiet { color: #6b3b35; }
     .quiet a { color: inherit; }
 
     @media (max-width: 520px) { .progress { padding-inline: .2rem; } .progress-label { font-size: .58rem; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
     @media print {
+      /* Hide the rooms, not the form: the endings live inside the form and keep their own gates. */
       body { color: #000; background: #fff; }
-      .masthead, .progress, form { display: none !important; }
-      .ending { display: block !important; margin: 1cm; }
+      .masthead, .progress, .room { display: none !important; }
+      form { padding: 0; }
+      .ending { margin: 1cm; animation: none; }
       .ending-inner { border: 2px solid #000; box-shadow: none; }
       .escape-link, .quiet { display: none; }
     }
@@ -257,11 +326,18 @@
     <p class="tagline">There is no cancel button.</p>
     <p class="intro">Welcome, Applicant. Your exit request has been received. Please complete the following mandatory fields to demonstrate eligibility for release.</p>
     <a class="button" href="#compliance">Begin compliance</a>
+    <details class="violation">
+      <summary>*Terms apply.</summary>
+      <p>Clause 0.3: Applicants are prohibited from reading Clause 0.3.</p>
+      <label><input id="v-clause" type="checkbox"> I confirm that I have not read Clause 0.3.</label>
+      <p class="violation-note">Violation logged. It will not affect your application. It will affect you.</p>
+    </details>
   </header>
 
   <main id="compliance" class="shell">
     <nav class="progress" aria-label="Compliance progress">
-      <p class="progress-label">Compliance events resolved</p>
+      <p class="progress-label progress-label--standard">Compliance events resolved</p>
+      <p class="progress-label progress-label--secret">You are the compliance events</p>
       <div class="steps" aria-label="Five compliance events">
         <span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span><span class="step" aria-hidden="true"></span>
       </div>
@@ -292,12 +368,23 @@
           <p class="system">Chronology reconciliation required</p>
           <h2 id="temporal-title">When did you start?</h2>
           <p class="prompt">State the date you began working here.</p>
-          <div class="policy"><strong>Employee profile, partially recovered</strong><br>Date of birth: 21 August 1996<br>Contract commencement: Immediately<br>Orientation status: Ongoing<br>Employment duration: Before</div>
+          <div class="policy"><strong>Employee profile, partially recovered</strong><br>Date of birth: 21 August 1996<br>Contract commencement: Immediately<br>Orientation status: Ongoing<br>Employment duration: Before
+            <details class="violation redacted">
+              <summary>Termination date: ██████████</summary>
+              <p>Termination date: not applicable. Viewing redacted material is a Class C violation.</p>
+              <label><input id="v-redacted" type="checkbox"> I did not see that.</label>
+              <p class="violation-note">Violation logged. Your clearance has been lowered to below zero.</p>
+            </details>
+          </div>
           <div class="choice-set" role="radiogroup" aria-label="Date you began working here">
             <label><input type="radio" name="temporal" required> 21 August 1996</label>
             <label><input type="radio" name="temporal"> Immediately</label>
             <label><input id="temporal-before" type="radio" name="temporal"> Before</label>
           </div>
+          <details class="hint">
+            <summary>Request assistance</summary>
+            <p>You were asked when you began. Only one line of the profile is an answer to that question rather than to a different one.</p>
+          </details>
           <p class="feedback feedback--good">Thank you. Seniority has been adjusted retroactively.</p>
           <p class="stamp">Temporal status aligned</p>
         </fieldset>
@@ -309,6 +396,12 @@
           <p class="system">Incident protocol active</p>
           <h2 id="emergency-title">Who should we call?</h2>
           <p class="prompt">In the event of an emergency, whom should we notify?</p>
+          <details class="violation">
+            <summary>¹</summary>
+            <p>Footnote 1: Calling for help during an emergency is classified as unauthorized escalation.</p>
+            <label><input id="v-footnote" type="checkbox"> I would have called for help anyway.</label>
+            <p class="violation-note">Violation logged. Help has been notified that you wanted it.</p>
+          </details>
           <details class="policy">
             <summary>Open stakeholder notification policy</summary>
             <p>Emergencies are autonomous corporate stakeholders and must be informed of any change to their operational environment.</p>
@@ -342,8 +435,14 @@
             <label><input id="waive" type="checkbox"> I waive my right to be a person.</label>
             <label><input id="nonbinding" type="checkbox"> I acknowledge that this acknowledgment is non-binding.</label>
           </div>
+          <details class="hint">
+            <summary>Request assistance</summary>
+            <p>Only statements that a document could truthfully make about itself are true. Exactly two qualify.</p>
+          </details>
           <p class="feedback feedback--good">Consent has been extracted. Thank you for volunteering it.</p>
+          <p class="feedback feedback--secret">All statements confirmed. The terms have read, understood and agreed to themselves.</p>
           <p class="stamp">Personhood archived</p>
+          <p class="stamp stamp--secret">Terms assumed</p>
         </fieldset>
       </section>
 
@@ -361,19 +460,57 @@
             <label for="final-notify">Notify<input id="final-notify" type="text" required pattern="[Tt][Hh][Ee] [Ee][Mm][Ee][Rr][Gg][Ee][Nn][Cc][Yy]" placeholder="________"></label>
             <label for="final-am">I am<input id="final-am" type="text" required pattern="[Nn][Oo][Nn]-[Bb][Ii][Nn][Dd][Ii][Nn][Gg]" placeholder="________"></label>
           </div>
+          <details class="hint">
+            <summary>Request assistance</summary>
+            <p>Every blank was answered earlier: your name (Room 1), when you began (Room 2), what you are (Room 4), whom we notify (Room 3), and how binding you are (Room 4).</p>
+          </details>
           <p class="feedback feedback--good">Departure request received. Reviewing your eligibility to have ever been here.</p>
           <p class="stamp">Departure language accepted</p>
         </fieldset>
       </section>
 
-      <section id="approved" class="ending" aria-labelledby="approved-title">
+      <section id="approved" class="ending ending--standard" aria-labelledby="approved-title">
         <div class="ending-inner">
           <p class="eyebrow">Form 0-0 · Disposition complete</p>
           <h2 id="approved-title">Exit approved.</h2>
           <p>Congratulations, Applicant. You have successfully escaped Form Hell.</p>
           <p>Your replacement has been created from the information you provided.</p>
+          <div class="scorecard">
+            <p class="eyebrow">Applicant performance review</p>
+            <dl>
+              <dt>Assistance requests logged</dt><dd class="count count--hints"></dd>
+              <dt>Policy violations confessed</dt><dd class="count count--violations"></dd>
+              <dt>Alternative disposition</dt><dd>Unclaimed</dd>
+            </dl>
+            <p class="rank rank--standard">Rating: Adequately processed.</p>
+            <p class="rank rank--exemplary">Rating: Exemplary compliance. You will be studied.</p>
+            <p class="rank rank--offender">Rating: Repeat offender. Promotion fast-tracked.</p>
+          </div>
           <a class="escape-link" href="#certificate">View print-ready certificate</a>
           <p id="certificate" class="quiet">Use your browser’s print command to keep a physical record of your nonexistence. <a href="">Return to Form Hell</a>. Close this tab and pretend it was voluntary.</p>
+        </div>
+      </section>
+
+      <section id="assumed" class="ending ending--secret" aria-labelledby="assumed-title">
+        <div class="ending-inner">
+          <p class="eyebrow">Form 0-0 · Disposition reversed</p>
+          <h2 id="assumed-title">Terms assumed.</h2>
+          <p>You confirmed every statement. This was not a mistake. If you are the terms, then of course you have read yourself, understood yourself and agreed to yourself. Personhood was only getting in the way.</p>
+          <p>There is no exit interview for you. Exits are something people do <em>through</em> you.</p>
+          <p>A new applicant has just opened Form 0-0. They are reading you now. Try to be fair. You will not be.</p>
+          <div class="scorecard">
+            <p class="eyebrow">Applicant performance review</p>
+            <dl>
+              <dt>Assistance requests logged</dt><dd class="count count--hints"></dd>
+              <dt>Policy violations confessed</dt><dd class="count count--violations"></dd>
+              <dt>Alternative disposition</dt><dd>Claimed</dd>
+            </dl>
+            <p class="rank rank--standard">Rating: Adequately processed.</p>
+            <p class="rank rank--exemplary">Rating: Exemplary compliance. You will be studied.</p>
+            <p class="rank rank--offender">Rating: Repeat offender. Promotion fast-tracked.</p>
+          </div>
+          <a class="escape-link" href="#binding">View print-ready binding copy</a>
+          <p id="binding" class="quiet">Use your browser’s print command to file yourself. <a href="">Return to Form Hell</a>. There is no tab to close. You are the tab.</p>
         </div>
       </section>
     </form>

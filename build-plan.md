@@ -227,11 +227,21 @@ Final controls:
 
 The base game should take 8–15 minutes. All answers are fairly clued in visible material, but close reading is rewarded.
 
-Potential additions:
+Implemented additions:
 
-- Two or three optional hidden policy violations revealed in overlooked `<details>` content.
-- A secret ending for a subtly incorrect but philosophically consistent Room 4 choice.
-- A scorecard based on hints opened, violations committed, and secret-ending status.
+- **Hidden policy violations (3).** Each sits in an easily overlooked `<details class="violation">` and contains a confession checkbox. Ticking it commits the violation and shows a violation note.
+  - Masthead fine print `*Terms apply.` → Clause 0.3 → `#v-clause` ("I confirm that I have not read Clause 0.3.")
+  - Room 2 redacted profile line `Termination date: ██████████` → `#v-redacted` ("I did not see that.")
+  - Room 3 footnote marker `¹` → `#v-footnote` ("I would have called for help anyway.")
+- **Assistance requests (3).** `<details class="hint">` in Rooms 2, 4 and 5 give direct nudges. Opening one shows "— request logged" and counts against the player.
+- **Secret ending — Terms Assumed.** In Room 4, checking *all six* statements is philosophically consistent: if you are the terms, you have read, understood and agreed to yourself, and personhood was never needed. Room 4 shows the red stamp `TERMS ASSUMED`. Room 5 stays hidden, the secret ending appears instead, the whole progress rail turns red, and its label becomes `YOU ARE THE COMPLIANCE EVENTS`.
+- **Scorecard.** Both endings show an "Applicant performance review": assistance requests logged (n / 3), violations confessed (n / 3), alternative disposition (`Unclaimed` / `Claimed`) and a rating:
+  - `Exemplary compliance` — no hints opened and no violations.
+  - `Repeat offender` — all three violations confessed.
+  - `Adequately processed` — everything else.
+
+Still possible later:
+
 - `Standard Escape` and `Management Track` modes as separate sections sharing the same components and styles.
 
 ## File structure
@@ -248,7 +258,7 @@ For maximum portability, the final version may instead be a single self-containe
 
 The following details were added during feasibility review and are required for the HTML-only implementation:
 
-- Use adjacent sibling CSS gates: a solved room reveals only the immediately following room. This prevents later content being visible before its prerequisite is met.
+- Room gates are cumulative: each room, ending and progress dot requires *every* earlier room's solution selector, tested on `form`/`body` with chained `:has()`. (The earlier adjacent-sibling gates only checked the immediately preceding room, so un-solving Room 1 after finishing left Rooms 4–5 and the ending visible.) Flat ID conditions are used because `:has()` cannot be nested inside `:has()`.
 - Do not rely on a `<fieldset>` itself becoming `:valid`; CSS instead tests the required descendant input states with `:has(...)`.
 - A radio group is not sufficient by itself for Rooms 2 and 3 because any selected required radio is valid. Gate those rooms by the ID of the specific correct radio being `:checked`.
 - Gate Room 4 by requiring both correct checkbox IDs to be checked and explicitly excluding every forbidden checkbox ID via `:not(:has(...))`.
@@ -256,3 +266,7 @@ The following details were added during feasibility review and are required for 
 - Completion messages and stamps must use the same exact solution selectors as their room gates. A generic `input:valid` selector is not sufficient because any selected required radio is valid, even when it is the wrong answer.
 - Text-answer patterns accept either letter case while CSS presents answers in uppercase, so the puzzle is about the words rather than keyboard capitalization.
 - The implementation will be a single `index.html` with embedded CSS so it can be opened offline. `build-plan.md` remains the source of truth for future changes.
+- The secret ending is gated by Rooms 1–3 plus all six Room 4 checkbox IDs being `:checked`. It is mutually exclusive with the standard Room 4 gate, which excludes the four extra boxes.
+- Scorecard numbers use CSS counters: `counter-reset: hints violations` on `body`, `counter-increment` on `.hint[open]` and on `.violation:has(input:checked)`, displayed with `counter()` in `::before`. The scorecard is later in document order than every counted element, so it shows final totals. Closing a hint un-logs it; this is accepted.
+- Ratings are mutually exclusive `:has()` conditions on `body` (none open/checked vs. all three violation IDs checked); the standard rating is the default.
+- Print styles hide `.room` elements, not `form`, because both endings live inside the form. Printing shows whichever ending is currently unlocked.
