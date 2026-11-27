@@ -228,8 +228,7 @@
     .room--delegation:has(#m-delegate-manager:checked) fieldset { animation: jitter-2 .42s ease-out; }
     .room--emergency:has(#contact-myself:checked) fieldset,
     .room--consent:has(#read:checked, #understand:checked, #agree:checked, #waive:checked):not(:has(#read:checked):has(#understand:checked):has(#agree:checked):has(#terms:checked):has(#waive:checked):has(#nonbinding:checked)) fieldset,
-    .room--budget:has(#m-quarter option:not(#q5):not([value=""]):checked) fieldset,
-    .room--effective:has(.answer:user-invalid) fieldset { animation: jitter-3 .42s ease-out; }
+    .room--budget:has(#m-quarter option:not(#q5):not([value=""]):checked) fieldset { animation: jitter-3 .42s ease-out; }
 
     /* Red alert after Room 3: a full-screen flash that plays once each time the condition starts to hold. */
     body::after { content: ""; position: fixed; z-index: 50; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 40%, rgb(242 88 75 / .55), rgb(120 12 8 / .9)); }
@@ -376,7 +375,7 @@
     body:has(#mode-management:checked) .button--management { display: block; }
 
     /* Management Track inputs */
-    input[type="number"], input[type="date"], select {
+    select {
       display: block;
       width: min(100%, 20rem);
       border: 2px solid #5d625b;
@@ -386,10 +385,11 @@
       background: #fffef7;
       font: 700 1rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
-    input[type="number"]:focus, input[type="date"]:focus, select:focus { border-color: #1975a3; outline: 3px solid rgb(25 117 163 / .25); }
+    select:focus { border-color: #1975a3; outline: 3px solid rgb(25 117 163 / .25); }
     select:has(#q5:checked) { border-color: #4e8a45; box-shadow: inset 0 0 0 1px #4e8a45; }
     select:has(option:not(#q5):not([value=""]):checked) { border-color: var(--red); }
-    input[type="date"]:user-invalid { border-color: var(--red); }
+    #m-headcount { width: min(100%, 10rem); }
+    #m-effective { width: min(100%, 16rem); }
 
     /*
       Management conditions:
@@ -401,7 +401,7 @@
         M5  :has(#m-code:valid)
     */
     .room--headcount .answer:invalid:not(:placeholder-shown) ~ .feedback--bad,
-    .room--effective .answer:user-invalid ~ .feedback--bad { display: block; animation: alarm .18s linear; }
+    .room--effective .answer:invalid:not(:placeholder-shown) ~ .feedback--bad { display: block; animation: alarm .18s linear; }
     .room--budget:has(#m-quarter option:not(#q5):not([value=""]):checked) .feedback--bad,
     .room--delegation:has(#m-delegate-hr:checked, #m-delegate-manager:checked) .feedback--bad { display: block; animation: alarm .18s linear; }
 
@@ -697,7 +697,7 @@
             <p>Headcount counts roles, not people. A person holding several roles is several heads. A role held by nobody yet still counts, because it has already been budgeted.</p>
           </details>
           <label for="m-headcount">Headcount</label>
-          <input class="answer" id="m-headcount" type="number" inputmode="numeric" placeholder="0" required min="3" max="3" step="1">
+          <input class="answer" id="m-headcount" type="text" inputmode="numeric" placeholder="0" required pattern="3|[Tt][Hh][Rr][Ee][Ee]">
           <p class="feedback feedback--bad">Headcount rejected. Finance has counted differently and is never wrong.</p>
           <p class="feedback feedback--good">Headcount confirmed. All three of you have been notified.</p>
           <p class="stamp">Span of control verified</p>
@@ -777,7 +777,7 @@
             <p>Terminations take effect on the earliest entry in the personnel file that is actually a date.</p>
           </details>
           <label for="m-effective">Effective date</label>
-          <input class="answer" id="m-effective" type="date" required min="1996-08-21" max="1996-08-21">
+          <input class="answer" id="m-effective" type="text" placeholder="YYYY-MM-DD" required pattern="1996-08-21|19960821|21(/|\.|-)0?8(/|\.|-)1996|0?8/21/1996|21 [Aa][Uu][Gg]([Uu][Ss][Tt])? 1996|[Aa][Uu][Gg]([Uu][Ss][Tt])? 21,? 1996">
           <details class="hint">
             <summary>Request assistance</summary>
             <p>“Before” and “Pending” are not dates. Only one line is.</p>
